@@ -4,9 +4,11 @@ const TYPES = {
   'households': 1,
   'lots': 2,
   'rooms': 3,
+  'tattoos': 5,
   1: 'Household',
   2: 'Lot',
-  3: 'Room'
+  3: 'Room',
+  5: 'Tattoo'
 };
 
 const formatRemoteId = id => {
@@ -33,11 +35,12 @@ $('#traySelector').on('change', async e => {
   const root = await rootPromise;
   const files = e.target.files;
   const allowedTypes = [];
-  ['households', 'lots', 'rooms'].forEach(type => {
+  ['households', 'lots', 'rooms', 'tattoos'].forEach(type => {
     if(isChecked(type))
       allowedTypes.push(TYPES[type]);
   });
   const ccOnly = isChecked('ccOnly');
+  const allowUnknown = isChecked('unknown');
 
   $('table').hide();
   const table = $('tbody').html('');
@@ -61,10 +64,14 @@ $('#traySelector').on('change', async e => {
 
     // ignore items of type we don't want
     const type = message.type;
-    if(allowedTypes.indexOf(type) == -1)
-      continue;
+    let typeStr = TYPES[type];
+    if(allowedTypes.indexOf(type) == -1) {
+      if(typeof typeStr === "undefined" && allowUnknown)
+        typeStr = "Unknown";
+      else
+        continue;
+    }
 
-    const typeStr = TYPES[type];
     const ccStr = hasCC ? 'Yes' : 'No';
     const name = message.name;
     const url = BASE_URL + formatRemoteId(message.remote_id);
